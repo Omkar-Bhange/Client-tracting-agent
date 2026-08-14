@@ -1,0 +1,8 @@
+{
+  "serverUrl": "http://192.168.0.229:5000",
+  "employeeCode": "EMP100",
+  "pcName": "Total4",
+  "deviceToken": ""
+  ,
+   "agentApiPort": 4500
+}

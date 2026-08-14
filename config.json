@@ -1,0 +1,7 @@
+{
+  "serverUrl": "http://localhost:5000",
+  "employeeCode": "",
+  "pcName": "",
+  "deviceToken": "",
+   "agentApiPort": 4500
+}
