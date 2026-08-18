@@ -33,9 +33,39 @@ CREATE TABLE IF NOT EXISTS sessions (
   project TEXT,
   client TEXT,
   activity TEXT,
+
+  taskId TEXT,
+  taskCode TEXT,
+  taskTitle TEXT,
+  taskStatus TEXT,
+
   uploaded INTEGER DEFAULT 0
 );
 `);
+function ensureColumn(columnName, definition) {
+  const columns = db
+    .prepare(`PRAGMA table_info(sessions)`)
+    .all();
+
+  const exists = columns.some(
+    (column) => column.name === columnName
+  );
+
+  if (!exists) {
+    db.exec(
+      `ALTER TABLE sessions ADD COLUMN ${columnName} ${definition}`
+    );
+
+    console.log(
+      `Database migration: added sessions.${columnName}`
+    );
+  }
+}
+
+ensureColumn("taskId", "TEXT");
+ensureColumn("taskCode", "TEXT");
+ensureColumn("taskTitle", "TEXT");
+ensureColumn("taskStatus", "TEXT");
 
 console.log("Agent database:", dbPath);
 

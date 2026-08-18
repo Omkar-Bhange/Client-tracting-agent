@@ -33,11 +33,20 @@ async function stopTracking(reason = "Auto logout") {
     console.error("Tracker stop failed:", e.message);
   }
 
-  try {
-    uploader.stopUploader();
-  } catch (e) {
-    console.error("Uploader stop failed:", e.message);
-  }
+try {
+  // tracker.stop() has already saved the employee's
+  // final active-window session into SQLite.
+  //
+  // Try one final upload before stopping.
+  await uploader.flushNow();
+
+  uploader.stopUploader();
+} catch (e) {
+  console.error(
+    "Uploader stop failed:",
+    e.message 
+  );
+}
 
   try {
     heartbeat.stopHeartbeat();

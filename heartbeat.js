@@ -3,23 +3,26 @@ const os = require("os");
 const fs = require("fs");
 const { loadConfig } = require("./configLoader");
 const { getDeviceId } = require("./device");
+const taskStore = require("./currentTask");
 
 
 
 let currentStatus = "Working";
 let currentApp = "";
-let currentTask = "";
+let currentTaskText = "";
 
 function updatePresence(data = {}) {
   if (data.status) currentStatus = data.status;
   if (data.application !== undefined) currentApp = data.application;
-  if (data.task !== undefined) currentTask = data.task;
+ if (data.task !== undefined) {
+  currentTaskText = data.task;
+}
 }
 
 async function sendHeartbeat() {
   try {
     const config = loadConfig();
-    await axios.post(
+    const response = await axios.post(
       config.serverUrl + "/api/agent/heartbeat",
       {
         deviceId: getDeviceId(),
@@ -27,7 +30,7 @@ async function sendHeartbeat() {
         pcName: config.pcName || os.hostname(),
         status: currentStatus,
         application: currentApp,
-        task: currentTask,
+        task: currentTaskText,
         timestamp: new Date().toISOString(),
       },
       {
@@ -37,7 +40,17 @@ async function sendHeartbeat() {
         timeout: 5000,
       }
     );
+taskStore.setCurrentTask(
+  response.data?.currentTask || null
+);
+const syncedTask = taskStore.getCurrentTask();
 
+console.log(
+  "Task sync:",
+  syncedTask?.taskCode || "NO-TASK",
+  "|",
+  syncedTask?.title || ""
+);
     console.log(`Heartbeat: ${currentStatus} | ${currentApp}`);
   } catch (err) {
     console.log("Heartbeat failed:", err.message);
@@ -52,7 +65,7 @@ function startHeartbeat() {
   console.log("Heartbeat service started...");
 
   sendHeartbeat();
-  heartbeatTimer = setInterval(sendHeartbeat, 30000);
+ heartbeatTimer = setInterval(sendHeartbeat, 120000);
 }
 
 function stopHeartbeat() {

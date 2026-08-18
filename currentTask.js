@@ -1,38 +1,31 @@
-const axios = require("axios");
-const fs = require("fs");
-const { loadConfig } = require("./configLoader");
-
 let activeTask = null;
 
-async function refreshCurrentTask() {
-  const config = loadConfig();
-  try {
-    const response = await axios.get(
-    config.serverUrl + "/api/agent/current-task",
-      {
-        headers: {
-          Authorization: `Bearer ${config.deviceToken}`,
-        },
-        timeout: 5000,
-      }
-    );
-
-    activeTask = response.data?.data || null;
-  } catch (err) {
-    console.log("Unable to fetch current task");
-  }
+function setCurrentTask(task) {
+  activeTask = task || null;
 }
 
 function getCurrentTask() {
   return activeTask;
 }
 
+function clearCurrentTask() {
+  activeTask = null;
+}
+
+// Kept temporarily so existing tracker code does not break.
 function startCurrentTaskWatcher() {
-  refreshCurrentTask();
-  setInterval(refreshCurrentTask, 30000);
+  // No polling anymore.
+  // Heartbeat updates the current task.
+}
+
+function stopCurrentTaskWatcher() {
+  activeTask = null;
 }
 
 module.exports = {
   getCurrentTask,
+  setCurrentTask,
+  clearCurrentTask,
   startCurrentTaskWatcher,
+  stopCurrentTaskWatcher,
 };

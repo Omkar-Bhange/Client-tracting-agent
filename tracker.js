@@ -99,8 +99,7 @@ async function start() {
   console.log("Tracker started...");
 
   // Capture first window immediately
-  currentTask.startCurrentTaskWatcher();
-  await checkWindow();
+await checkWindow();
 
   // Check every 5 seconds for a window switch
   trackerTimer = setInterval(checkWindow, 5000);
@@ -115,7 +114,7 @@ async function stop() {
     clearInterval(trackerTimer);
     trackerTimer = null;
   }
-
+currentTask.stopCurrentTaskWatcher();
   await flushCurrentSession();
 
   currentApp = null;
