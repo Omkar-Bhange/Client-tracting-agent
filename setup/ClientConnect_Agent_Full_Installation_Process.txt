@@ -1,0 +1,228 @@
+CLIENTCONNECT AGENT - FULL INSTALLATION PROCESS
+
+1. DEVELOPMENT PC - BUILD LATEST AGENT
+
+Node.js/npm are required only on the development PC.
+
+Open the agent-core project terminal and run:
+
+npm run build
+
+Verify: dist-core.exe
+
+2. PREPARE EMPLOYEE INSTALLATION FOLDER
+
+Copy the latest required files:
+
+agent-core.exe better_sqlite3.node config.json install.bat uninstall.bat
+
+Employee PC does NOT need: - Node.js - npm - VS Code - node_modules -
+JavaScript source files
+
+3. CONFIGURE EMPLOYEE
+
+Before installing, verify config.json contains the correct values for
+that employee.
+
+Example:
+
+{ “serverUrl”: “http://YOUR-SERVER-IP:5000”, “employeeCode”: “EMP101”,
+“pcName”: “EmployeePC”, “deviceToken”: ““,”agentApiPort”: 4500 }
+
+Set: serverUrl = backend address reachable from employee PC employeeCode
+= correct employee code pcName = recognizable employee workstation name
+deviceToken = blank for new registration if using the current
+registration flow agentApiPort = 4500 unless intentionally changed
+
+Never accidentally assign the same employee/device configuration to the
+wrong PC.
+
+4. VERIFY BACKEND CONNECTION
+
+For LAN testing, do NOT use localhost or 127.0.0.1 as serverUrl on
+another PC.
+
+Use the backend computer’s reachable LAN IP, for example:
+
+http://192.168.x.x:5000
+
+After backend deployment, use the production backend URL.
+
+Make sure: - Backend is running. - Employee PC can reach the backend. -
+Firewall permits the connection. - Correct serverUrl is configured.
+
+5. INSTALL ON EMPLOYEE PC
+
+Copy the prepared folder to the employee PC.
+
+Right-click:
+
+install.bat
+
+Choose:
+
+Run as administrator
+
+Approve the Windows UAC prompt and allow installation to complete.
+
+6. VERIFY LOCAL AGENT
+
+Open PowerShell and run:
+
+Invoke-RestMethod -Uri “http://127.0.0.1:4500/health”
+
+A successful response should show the ClientConnect Agent is running.
+
+Useful fields may include:
+
+success agent running tracking employeeCode pcName deviceId registered
+
+7. DEVICE REGISTRATION AND ADMIN APPROVAL
+
+A new employee PC should register its device with ClientConnect.
+
+Admin should verify: - Employee - Employee code - PC name - Device ID -
+Registration/approval status
+
+Approve only a known authorized workstation.
+
+Do not automatically trust an unknown PC just because it successfully
+registered.
+
+8. EMPLOYEE LOGIN TEST
+
+On the employee PC:
+
+1.  Open ClientConnect.
+
+2.  Login with the employee account.
+
+3.  Confirm the browser/app detects the local ClientConnect Agent.
+
+4.  Confirm employeeCode and PC/device correspond to that employee.
+
+5.  Start the workday/attendance flow.
+
+6.  Verify dashboard shows the workday as active.
+
+7.  Verify Start Workday does not remain incorrectly available after
+    starting.
+
+8.  ATTENDANCE APPROVAL FLOW
+
+    Expected concept:
+
+Verified office workstation/network | v Normal attendance/workday flow |
+v Agent tracking starts when workday is active
+
+Remote/unverified login | v Pending attendance approval request | v
+Admin reviews request | +– Approve with supported status such as: | Late
+Arrival | Work From Home | other supported status | +– Reject | v
+Attendance is not activated
+
+10. VERIFY TRACKING
+
+After an approved/active workday:
+
+Invoke-RestMethod -Uri “http://127.0.0.1:4500/health”
+
+Expected while working:
+
+running : True tracking : True
+
+Then verify employee activity reaches the ClientConnect backend.
+
+11. END WORKDAY TEST
+
+Click End Workday.
+
+Run the health check again:
+
+Invoke-RestMethod -Uri “http://127.0.0.1:4500/health”
+
+Expected concept:
+
+running : True tracking : False
+
+IMPORTANT: The agent process remaining running is normal.
+
+“running : True” means the background ClientConnect Agent is available.
+“tracking : False” means employee activity tracking has stopped.
+
+Ending the workday should stop tracking; it does not need to terminate
+agent-core.exe.
+
+12. RESTART TEST
+
+Restart the employee PC.
+
+Do not manually launch agent-core.exe.
+
+After Windows starts, run:
+
+Invoke-RestMethod -Uri “http://127.0.0.1:4500/health”
+
+Verify: - Agent automatically starts. - Same device identity remains. -
+Device remains registered/approved. - Employee can use the expected
+attendance flow.
+
+13. PORT 4500 TROUBLESHOOTING
+
+If the health check does not work:
+
+Get-NetTCPConnection -LocalPort 4500 -State Listen
+
+Then:
+
+$pid4500 = (Get-NetTCPConnection -LocalPort 4500 -State
+Listen).OwningProcess Get-Process -Id $pid4500
+
+For executable information:
+
+Get-CimInstance Win32_Process -Filter “ProcessId=$pid4500” |
+Select-Object ProcessId, Name, ExecutablePath, CommandLine
+
+The expected listener should be the installed ClientConnect
+agent-core.exe.
+
+14. SECURITY CHECKS BEFORE FULL DEPLOYMENT
+
+-   Approve only known employee PCs.
+-   Keep employeeCode/device mapping correct.
+-   Never distribute admin access tokens.
+-   Never put temporary admin tokens in employee installation packages.
+-   Test unapproved/rejected device behavior.
+-   Test remote attendance approval.
+-   Confirm End Workday stops tracking.
+-   Confirm activity belongs to the correct registered employee/device.
+-   Test temporary backend/internet failure.
+-   Use the production backend URL after deployment.
+
+15. UNINSTALL
+
+To remove the agent:
+
+Right-click uninstall.bat Select “Run as administrator”
+
+After uninstalling, verify port 4500 is no longer being used by the
+agent.
+
+16. FINAL INSTALLATION CHECKLIST
+
+[ ] npm run build completed on development PC [ ] Latest agent-core.exe
+copied [ ] better_sqlite3.node copied [ ] Correct config.json copied [ ]
+Correct employeeCode [ ] Correct pcName [ ] Correct backend serverUrl [
+] install.bat copied [ ] uninstall.bat copied [ ] install.bat run as
+Administrator [ ] Local /health endpoint works [ ] Correct device
+registered [ ] Device approved by admin [ ] Employee login tested [ ]
+Attendance approval flow tested [ ] Tracking becomes True while working
+[ ] End Workday makes tracking False [ ] PC restart/auto-start tested [
+] Activity reaches ClientConnect correctly
+
+NODE.JS REQUIREMENT
+
+Development PC: Node.js required = YES Employee PC: Node.js required =
+NO
+
+The packaged agent-core.exe contains the runtime required by the
+employee agent.

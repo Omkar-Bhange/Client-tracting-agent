@@ -1,0 +1,11 @@
+config.jason:
+==========================================================================================================
+{
+  "serverUrl": "http://192.168.0.229:5000",
+  "employeeCode": "THE_OTHER_EMPLOYEE_CODE",
+  "pcName": "THE_OTHER_PC_NAME",
+  "deviceToken": "",
+  "agentApiPort": 4500
+}
+
+taskkill /F /IM agent-core.exe
